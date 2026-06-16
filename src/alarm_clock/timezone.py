@@ -32,7 +32,7 @@ def get_tz_offset(tz_name: str) -> Optional[timedelta]:
 def convert_time(local_dt: datetime, from_tz: str, to_tz: str) -> datetime:
     """Convert datetime from one timezone to another."""
     from_zone = get_timezone(from_tz)
-    to_zone = get_timezone(to_z)
+    to_zone = get_timezone(to_tz)
     if from_zone is None or to_zone is None:
         return local_dt
     if local_dt.tzinfo is None:

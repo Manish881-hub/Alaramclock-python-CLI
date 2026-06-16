@@ -4,6 +4,7 @@ import os
 import platform
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from alarm_clock.logging_conf import get_logger

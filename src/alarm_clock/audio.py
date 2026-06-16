@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
+import alarm_clock.compat_winsound as winsound
+
 from alarm_clock.config import Config, AudioConfig
 from alarm_clock.logging_conf import get_logger
 
@@ -71,7 +73,6 @@ class AudioPlayer:
 
     def _play_windows(self, repeat: int, interval: float) -> None:
         try:
-            import winsound
             for _ in range(repeat):
                 winsound.Beep(880, 400)
                 time.sleep(interval)
@@ -89,7 +90,6 @@ class AudioPlayer:
                 else:
                     cmd = ["aplay", "-q", str(path)]
             elif system == "Windows":
-                import winsound
                 for _ in range(repeat):
                     winsound.PlaySound(str(path), winsound.SND_FILENAME | winsound.SND_ASYNC)
                     time.sleep(interval)

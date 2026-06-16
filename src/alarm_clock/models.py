@@ -13,7 +13,7 @@ class Alarm:
     label: str
     hour: int
     minute: int
-    repeat_daily: bool
+    repeat_daily: bool = False
     active: bool = True
     snoozed_until: Optional[str] = None  # ISO-8601 datetime or None
 
