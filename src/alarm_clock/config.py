@@ -4,7 +4,6 @@ import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -57,7 +56,7 @@ class Config:
     tui: TUIConfig = field(default_factory=TUIConfig)
 
     @classmethod
-    def load(cls, config_path: Optional[Path] = None) -> "Config":
+    def load(cls, config_path: Path | None = None) -> "Config":
         if config_path is None:
             config_path = cls._default_config_path()
 
@@ -78,21 +77,25 @@ class Config:
             tui=TUIConfig(**data.get("tui", {})),
         )
 
-    def save(self, config_path: Optional[Path] = None) -> None:
+    def save(self, config_path: Path | None = None) -> None:
         if config_path is None:
             config_path = self._default_config_path()
 
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
         import tomli_w
+
         with config_path.open("wb") as f:
-            tomli_w.dump({
-                "general": self.general.__dict__,
-                "audio": self.audio.__dict__,
-                "storage": self.storage.__dict__,
-                "logging": self.logging.__dict__,
-                "tui": self.tui.__dict__,
-            }, f)
+            tomli_w.dump(
+                {
+                    "general": self.general.__dict__,
+                    "audio": self.audio.__dict__,
+                    "storage": self.storage.__dict__,
+                    "logging": self.logging.__dict__,
+                    "tui": self.tui.__dict__,
+                },
+                f,
+            )
 
     @staticmethod
     def _default_config_path() -> Path:

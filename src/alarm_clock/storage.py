@@ -1,20 +1,19 @@
 """Alarm persistence with atomic JSON writes."""
 
+import contextlib
 import json
 import threading
-from pathlib import Path
-from typing import List
 
 from alarm_clock.config import Config
-from alarm_clock.models import Alarm
 from alarm_clock.logging_conf import get_logger
+from alarm_clock.models import Alarm
 
 logger = get_logger(__name__)
 
 _lock = threading.Lock()
 
 
-def load_alarms(config: Config) -> List[Alarm]:
+def load_alarms(config: Config) -> list[Alarm]:
     """Load alarms from JSON file."""
     store_path = config.get_storage_path()
     if not store_path.exists():
@@ -33,7 +32,7 @@ def load_alarms(config: Config) -> List[Alarm]:
         return []
 
 
-def save_alarms(config: Config, alarms: List[Alarm]) -> None:
+def save_alarms(config: Config, alarms: list[Alarm]) -> None:
     """Save alarms to JSON file atomically."""
     store_path = config.get_storage_path()
     store_path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,8 +49,6 @@ def save_alarms(config: Config, alarms: List[Alarm]) -> None:
     except Exception as e:
         logger.error("Failed to save alarms to {}: {}", store_path, e)
         if tmp_path.exists():
-            try:
+            with contextlib.suppress(Exception):
                 tmp_path.unlink()
-            except Exception:
-                pass
         raise

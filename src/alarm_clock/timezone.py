@@ -1,27 +1,22 @@
 """Timezone utilities using zoneinfo (stdlib 3.9+)."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
-
-try:
-    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-except ImportError:
-    from backports.zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import datetime, timedelta, timezone, tzinfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
-def get_timezone(tz_name: str) -> Optional[timezone]:
+def get_timezone(tz_name: str) -> tzinfo | None:
     """Get timezone object from name."""
     if tz_name == "local":
         return datetime.now().astimezone().tzinfo
     if tz_name == "UTC":
-        return timezone.utc
+        return timezone.utc  # type: ignore[return-value]
     try:
         return ZoneInfo(tz_name)
     except ZoneInfoNotFoundError:
         return None
 
 
-def get_tz_offset(tz_name: str) -> Optional[timedelta]:
+def get_tz_offset(tz_name: str) -> timedelta | None:
     """Get current UTC offset for timezone."""
     tz = get_timezone(tz_name)
     if tz is None:

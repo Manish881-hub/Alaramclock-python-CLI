@@ -6,11 +6,9 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Optional
 
 import alarm_clock.compat_winsound as winsound
-
-from alarm_clock.config import Config, AudioConfig
+from alarm_clock.config import AudioConfig, Config
 from alarm_clock.logging_conf import get_logger
 
 logger = get_logger(__name__)
@@ -23,7 +21,7 @@ class AudioPlayer:
         self.config = config
         self.audio_cfg: AudioConfig = config.audio
         self._lock = threading.Lock()
-        self._custom_sound_path: Optional[Path] = None
+        self._custom_sound_path: Path | None = None
         if self.audio_cfg.custom_sound:
             self._custom_sound_path = Path(self.audio_cfg.custom_sound).expanduser()
 
@@ -55,7 +53,9 @@ class AudioPlayer:
         for _ in range(repeat):
             subprocess.run(
                 ["afplay", "/System/Library/Sounds/Ping.aiff"],
-                check=False, timeout=5, capture_output=True,
+                check=False,
+                timeout=5,
+                capture_output=True,
             )
             time.sleep(interval)
 

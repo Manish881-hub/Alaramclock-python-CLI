@@ -1,29 +1,27 @@
 """Typer CLI entry point for alarm clock."""
 
 import threading
-import time
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
 
 import typer
+from rich import print as rprint
 from rich.console import Console
 from rich.table import Table
-from rich import print as rprint
 
 from alarm_clock import __version__
 from alarm_clock.audio import AudioPlayer
 from alarm_clock.config import Config
-from alarm_clock.logging_conf import setup_logging, get_logger
+from alarm_clock.logging_conf import get_logger, setup_logging
 from alarm_clock.models import Alarm
 from alarm_clock.scheduler import AlarmMonitor
-from alarm_clock.storage import load_alarms, save_alarms
 from alarm_clock.service import (
     install_service,
-    uninstall_service,
     run_daemon,
+    uninstall_service,
 )
+from alarm_clock.storage import load_alarms, save_alarms
 
 app = typer.Typer(
     name="alarm-clock",
@@ -35,7 +33,7 @@ console = Console()
 logger = get_logger(__name__)
 
 
-def _get_config(config_path: Optional[Path] = None) -> Config:
+def _get_config(config_path: Path | None = None) -> Config:
     config = Config.load(config_path)
     setup_logging(config)
     return config
@@ -51,7 +49,7 @@ def _parse_time(time_str: str) -> tuple[int, int]:
     return h, m
 
 
-def _display_alarms(alarms: List[Alarm]) -> None:
+def _display_alarms(alarms: list[Alarm]) -> None:
     if not alarms:
         rprint("[yellow]No alarms set.[/yellow]")
         return
@@ -89,9 +87,7 @@ def _display_alarms(alarms: List[Alarm]) -> None:
 
 @app.command("list")
 def list_alarms(
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """List all alarms."""
     config = _get_config(config_path)
@@ -104,9 +100,7 @@ def add(
     time: str = typer.Argument(..., help="Time in HH:MM format"),
     label: str = typer.Option("Alarm", "--label", "-l", help="Alarm label"),
     repeat: bool = typer.Option(False, "--repeat", "-r", help="Repeat daily"),
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Add a new alarm."""
     config = _get_config(config_path)
@@ -117,7 +111,7 @@ def add(
         hour, minute = _parse_time(time)
     except typer.BadParameter as e:
         rprint(f"[red]Error: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     alarm = Alarm(
         id=str(uuid.uuid4()),
@@ -139,9 +133,7 @@ def add(
 @app.command()
 def delete(
     alarm_id: str = typer.Argument(..., help="Alarm number (from list) or ID prefix"),
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Delete an alarm by number or ID prefix."""
     config = _get_config(config_path)
@@ -162,9 +154,7 @@ def delete(
 @app.command()
 def enable(
     alarm_id: str = typer.Argument(..., help="Alarm number (from list) or ID prefix"),
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Enable a disabled alarm."""
     config = _get_config(config_path)
@@ -185,9 +175,7 @@ def enable(
 
 @app.command()
 def daemon(
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Run alarm clock as background daemon."""
     config = _get_config(config_path)
@@ -204,15 +192,12 @@ def daemon(
 
 @app.command()
 def tui(  # pragma: no cover (interactive)
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Launch the Rich TUI for interactive alarm management."""
     config = _get_config(config_path)
     alarms = load_alarms(config)
     lock = threading.Lock()
-    audio_player = AudioPlayer(config)
 
     def on_add(label: str, hour: int, minute: int, repeat: bool) -> None:
         nonlocal alarms
@@ -245,7 +230,9 @@ def tui(  # pragma: no cover (interactive)
                 if a.active:
                     a.snoozed_until = None
                 save_alarms(config, alarms)
-                logger.info("Toggled alarm '{}' to {}", a.label, "active" if a.active else "inactive")
+                logger.info(
+                    "Toggled alarm '{}' to {}", a.label, "active" if a.active else "inactive"
+                )
 
     def on_snooze(alarm: Alarm) -> None:
         snooze_until = datetime.now() + timedelta(minutes=config.general.snooze_minutes)
@@ -270,7 +257,9 @@ def tui(  # pragma: no cover (interactive)
     monitor = AlarmMonitor(config, alarms, lock, lambda a: None)
     monitor.start()
 
-    ui = AlarmTUI(config, alarms, lock, on_add, on_delete, on_toggle, on_snooze, on_dismiss, on_quit)
+    ui = AlarmTUI(
+        config, alarms, lock, on_add, on_delete, on_toggle, on_snooze, on_dismiss, on_quit
+    )
 
     try:
         ui.run()
@@ -282,9 +271,7 @@ def tui(  # pragma: no cover (interactive)
 
 @app.command()
 def install(
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Install alarm clock as a system service."""
     _get_config(config_path)
@@ -297,9 +284,7 @@ def install(
 
 @app.command()
 def uninstall(
-    config_path: Optional[Path] = typer.Option(
-        None, "--config", "-c", help="Path to config file"
-    ),
+    config_path: Path | None = typer.Option(None, "--config", "-c", help="Path to config file"),
 ) -> None:
     """Uninstall alarm clock system service."""
     _get_config(config_path)
@@ -324,7 +309,7 @@ def main_callback(
     pass
 
 
-def _resolve_alarm(alarm_id: str, alarms: List[Alarm]) -> Optional[int]:
+def _resolve_alarm(alarm_id: str, alarms: list[Alarm]) -> int | None:
     """Resolve an alarm by number (1-indexed) or by ID prefix."""
     try:
         idx = int(alarm_id) - 1

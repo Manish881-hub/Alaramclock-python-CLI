@@ -1,14 +1,13 @@
 """Alarm scheduler with background monitoring thread."""
 
 import threading
-import time
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Callable, List, Optional
 
 from alarm_clock.config import Config
+from alarm_clock.logging_conf import get_logger
 from alarm_clock.models import Alarm
 from alarm_clock.storage import save_alarms
-from alarm_clock.logging_conf import get_logger
 
 logger = get_logger(__name__)
 
@@ -24,7 +23,7 @@ class AlarmMonitor(threading.Thread):
     def __init__(
         self,
         config: Config,
-        alarms: List[Alarm],
+        alarms: list[Alarm],
         lock: threading.Lock,
         ring_callback: Callable[[Alarm], None],
     ) -> None:

@@ -122,12 +122,16 @@ def install_windows_service() -> bool:
     try:
         # Try NSSM first (better service management)
         nssm_path = Path("nssm.exe")
-        if nssm_path.exists() or subprocess.run(["where", "nssm"], capture_output=True).returncode == 0:
-            subprocess.run([
-                "nssm", "install", "AlarmClock", exe_path, "daemon"
-            ], check=True)
+        if (
+            nssm_path.exists()
+            or subprocess.run(["where", "nssm"], capture_output=True).returncode == 0
+        ):
+            subprocess.run(["nssm", "install", "AlarmClock", exe_path, "daemon"], check=True)
             subprocess.run(["nssm", "set", "AlarmClock", "DisplayName", "Alarm Clock"], check=True)
-            subprocess.run(["nssm", "set", "AlarmClock", "Description", "Background alarm clock daemon"], check=True)
+            subprocess.run(
+                ["nssm", "set", "AlarmClock", "Description", "Background alarm clock daemon"],
+                check=True,
+            )
             subprocess.run(["nssm", "set", "AlarmClock", "Start", "SERVICE_AUTO_START"], check=True)
             subprocess.run(["sc", "start", "AlarmClock"], check=True)
             logger.info("Windows service installed via NSSM")
@@ -139,8 +143,7 @@ def install_windows_service() -> bool:
     try:
         ps1_content = WINDOWS_SERVICE_PS1.format(exe_path=exe_path)
         result = subprocess.run(
-            ["powershell", "-Command", ps1_content],
-            capture_output=True, text=True, check=True
+            ["powershell", "-Command", ps1_content], capture_output=True, text=True, check=True
         )
         logger.info("Windows service installed via sc.exe: {}", result.stdout)
         return True

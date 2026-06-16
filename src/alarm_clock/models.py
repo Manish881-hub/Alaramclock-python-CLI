@@ -2,7 +2,6 @@
 
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Optional
 
 
 @dataclass
@@ -15,9 +14,9 @@ class Alarm:
     minute: int
     repeat_daily: bool = False
     active: bool = True
-    snoozed_until: Optional[str] = None  # ISO-8601 datetime or None
+    snoozed_until: str | None = None  # ISO-8601 datetime or None
 
-    def next_trigger(self, tz_offset: Optional[timedelta] = None) -> Optional[datetime]:
+    def next_trigger(self, tz_offset: timedelta | None = None) -> datetime | None:
         """Return the next datetime this alarm should fire, or None if it won't."""
         if not self.active:
             return None
@@ -32,9 +31,7 @@ class Alarm:
                 return snooze_dt
             # Expired snooze — fall through to normal schedule
 
-        candidate = now.replace(
-            hour=self.hour, minute=self.minute, second=0, microsecond=0
-        )
+        candidate = now.replace(hour=self.hour, minute=self.minute, second=0, microsecond=0)
         if candidate <= now:
             if self.repeat_daily:
                 candidate += timedelta(days=1)

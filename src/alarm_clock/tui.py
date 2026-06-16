@@ -2,8 +2,7 @@
 
 import threading
 import time
-from datetime import datetime
-from typing import List, Optional, Callable
+from collections.abc import Callable
 
 from rich.align import Align
 from rich.console import Console
@@ -15,8 +14,8 @@ from rich.table import Table
 from rich.text import Text
 
 from alarm_clock.config import Config
-from alarm_clock.models import Alarm
 from alarm_clock.logging_conf import get_logger
+from alarm_clock.models import Alarm
 
 logger = get_logger(__name__)
 
@@ -27,7 +26,7 @@ class AlarmTUI:
     def __init__(
         self,
         config: Config,
-        alarms: List[Alarm],
+        alarms: list[Alarm],
         lock: threading.Lock,
         on_add: Callable[[str, int, int, bool], None],
         on_delete: Callable[[int], None],
@@ -48,7 +47,7 @@ class AlarmTUI:
 
         self.console = Console()
         self.layout = Layout()
-        self._ringing_alarm: Optional[Alarm] = None
+        self._ringing_alarm: Alarm | None = None
         self._ring_event = threading.Event()
         self._running = True
         self._selected_index = 0
@@ -138,7 +137,9 @@ class AlarmTUI:
 
     def _update_layout(self) -> None:
         self.layout["header"].update(self._make_header())
-        self.layout["alarms"].update(Panel(self._make_alarms_table(), title="Alarms", border_style="green"))
+        self.layout["alarms"].update(
+            Panel(self._make_alarms_table(), title="Alarms", border_style="green")
+        )
         self.layout["help"].update(self._make_help())
         self.layout["footer"].update(self._make_footer())
 
@@ -163,7 +164,7 @@ class AlarmTUI:
                 # Check for key input (non-blocking)
                 if self.console.is_terminal:
                     try:
-                        key = self.console.input("", timeout=0.5)
+                        key = self.console.input("")  # type: ignore[call-arg]
                         self._handle_key(key)
                     except Exception:
                         pass
@@ -201,9 +202,8 @@ class AlarmTUI:
             if count > 0:
                 self.on_delete(self._selected_index)
                 self._selected_index = min(self._selected_index, count - 2)
-        elif key in (" ", "enter"):
-            if count > 0:
-                self.on_toggle(self._selected_index)
+        elif key in (" ", "enter") and count > 0:
+            self.on_toggle(self._selected_index)
 
     def _prompt_add_alarm(self) -> None:
         """Prompt for new alarm details."""

@@ -1,7 +1,7 @@
 """Logging configuration using loguru."""
 
 import sys
-from pathlib import Path
+
 from loguru import logger
 
 from alarm_clock.config import Config, LoggingConfig
@@ -53,5 +53,5 @@ def setup_logging(config: Config) -> None:
     )
 
 
-def get_logger(name: str = None):
+def get_logger(name: str | None = None):
     return logger.bind(name=name or "alarm_clock")
