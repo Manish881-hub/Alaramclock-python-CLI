@@ -31,6 +31,7 @@ dependencies = [
     "rich>=13.0",
     "loguru>=0.7",
     "tomli>=2.0; python_version<'3.11'",
+    "tomli_w>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -91,7 +92,12 @@ addopts = "-v --tb=short --cov=alarm_clock --cov-report=term-missing --cov-fail-
 
 [tool.coverage.run]
 source = ["src/alarm_clock"]
-omit = ["tests/*", "*/__main__.py"]
+omit = [
+    "tests/*",
+    "*/__main__.py",
+    "*/tui.py",
+    "*/compat_winsound.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
