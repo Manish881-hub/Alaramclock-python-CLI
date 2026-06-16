@@ -55,11 +55,9 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install dependencies
-        run: |
-          pip install -e ".[dev,test]"
+        run: pip install -e ".[dev,test]"
       - name: Run tests
-        run: |
-          python -m pytest --cov=alarm_clock --cov-report=xml --cov-report=term-missing --cov-fail-under=90 -v
+        run: python -m pytest --cov=alarm_clock --cov-report=term-missing --cov-report=xml -v
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:

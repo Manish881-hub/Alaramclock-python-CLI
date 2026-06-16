@@ -32,6 +32,7 @@ dependencies = [
     "loguru>=0.7",
     "tomli>=2.0; python_version<'3.11'",
     "tomli_w>=1.0",
+    "tzdata>=2023; platform_system=='Windows'",
 ]
 
 [project.optional-dependencies]
