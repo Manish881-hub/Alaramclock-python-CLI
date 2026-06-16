@@ -1,0 +1,13 @@
+[Unit]
+Description=Alarm Clock Daemon
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=%USER%
+ExecStart=%EXEC_PATH% daemon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
